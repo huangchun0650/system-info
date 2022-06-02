@@ -1,7 +1,6 @@
 const { QMainWindow, QMovie, QLabel, QWidget, FlexLayout, QSize, QTabWidget, QListWidget, QListWidgetItem, QIcon, QMessageBox, QPushButton, AlignmentFlag, QPoint } = require('@nodegui/nodegui');
 const axios = require('axios').default;
 const os = require('os');
-const config = require('config');
 const si = require('systeminformation')
 
 const win = new QMainWindow();
@@ -310,7 +309,7 @@ const showModal = async (details) => {
  */
 const showInfoDetails = async (details) => {
     let infoArray = []
-    const zhTranslateData = config.get('zh');
+    const zhTranslateData = myConfig.zh;
     for (const [key, value] of Object.entries(details)) {
         if (typeof value !== 'object' && !Array.isArray(value) && value !== null) {
             if (value !== "") {
