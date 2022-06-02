@@ -1,4 +1,5 @@
 const path = require("path");
+const webpack = require('webpack');
 const { CleanWebpackPlugin } = require("clean-webpack-plugin");
 const ConfigWebpackPlugin = require("config-webpack");
 
@@ -41,6 +42,7 @@ module.exports = {
     extensions: [".tsx", ".ts", ".js", ".jsx"]
   },
   plugins: [
+    new webpack.IgnorePlugin({ resourceRegExp: /osx-temperature-sensor$/, }),
     new ConfigWebpackPlugin("myConfig", {
       "zh": {
         "manufacturer": "製造商",
@@ -73,13 +75,12 @@ module.exports = {
         "voltageConfigured": "電壓配置",
         "voltageMin": "最小電壓值",
         "voltageMax": "最大電壓值",
-        "bus": "總線控制(器)使用率",
+        "bus": "總線",
         "vram": "顯存",
         "vramDynamic": "動態顯存",
         "subDeviceId": "子設備 ID",
         "driverVersion": "驅動程序版本",
         "name": "設備名稱",
-        "pciBus": "總線",
         "memoryTotal": "顯存總量",
         "memoryUsed": "顯存使用量",
         "memoryFree": "顯存未使用量",

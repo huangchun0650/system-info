@@ -1,10 +1,23 @@
-const { QMainWindow, QMovie, QLabel, QWidget, FlexLayout, QSize, QTabWidget, QListWidget, QListWidgetItem, QIcon, QMessageBox, QPushButton, AlignmentFlag, QPoint } = require('@nodegui/nodegui');
+const { 
+    QMainWindow,
+    QMovie,
+    QLabel,
+    QWidget,
+    FlexLayout,
+    QSize, 
+    QTabWidget, 
+    QListWidget, 
+    QListWidgetItem, 
+    QIcon, 
+    QMessageBox, 
+    QPushButton, 
+    AlignmentFlag,  
+} = require('@nodegui/nodegui');
 const axios = require('axios').default;
 const os = require('os');
 const si = require('systeminformation')
 
 const win = new QMainWindow();
-win.font
 win.setWindowTitle("系統資訊");
 
 const main = async () => {
@@ -50,7 +63,7 @@ const main = async () => {
 
     gifMovie.setCacheMode(QMovie.CacheAll)
     gifMovie.setSpeed(200)
-    gifMovie.setScaledSize(new QSize(300 , 200))
+    gifMovie.setScaledSize(new QSize(640 , 400))
     loadingGif.setMovie(gifMovie);
     gifMovie.start()
 
@@ -84,8 +97,8 @@ const main = async () => {
             background-color: #ffffff;
         }
         #loadingContainer {
-            height: 240px;
-            width: 320px;
+            height: 100;
+            width: '640px';
             flex-direction: 'row';
             flex-wrap: 'wrap';
             justify-content: 'center';
@@ -96,26 +109,43 @@ const main = async () => {
             width: '100%';
             height: '100%';
         }
-        #container {
-            flex-direction: 'row';
+        #allContainer {
             flex: 1;
             align-items: 'flex-start';
             width: '100%';
             height: '100%';
         }
-        #infoLabel {
-            flex: 3;
-            background-color: #777777;
+        #detailsList {
+            flex: 1;
+            background-color: #9d9d9d;
             color: 'white';
             height: '100%';
             width: '100%';
         }
         #tabBar {
-            flex: 5;
-            background-color: white;
+            flex: 4;
             height: '100%';
             align-items: 'center';
-            justify-content: 'center'
+            justify-content: 'center';
+        }
+        #postButton {
+            margin: 5px;
+            width: '90%';
+            height: 35px;
+        }
+        #topContainer {
+            flex-direction: 'row';
+            flex: 3;
+            width: '100%';
+        }
+        #underContainer {
+            flex: 2;
+            width: '100%';
+        }
+        #buttonContainer {
+            flex: 1;
+            justify-content: 'center';
+            width: '100%';
         }
     `);
     
@@ -132,6 +162,12 @@ const main = async () => {
     renderView()
 };
 
+/**
+ * getMovie
+ * 取得gif
+ * @param {String} url 
+ * @returns 
+ */
 async function getMovie(url) {
     const { data } = await axios.get(url, { responseType: 'arraybuffer' });
     const movie = new QMovie();
@@ -163,113 +199,161 @@ const systemInfo = new Promise((resolve) => {
  * @returns 
  */
 const createSystemInfoView = async (sysInfo) => {
-    const container = new QWidget()
-    container.setLayout(new FlexLayout());
-    container.setObjectName('container')
 
-    const infoLabel = new QListWidget()
-    infoLabel.setObjectName('infoLabel')
+    // declarative element
+    const allContainer = new QWidget()
+    allContainer.setLayout(new FlexLayout())
+    allContainer.setObjectName('allContainer')
+
+    const topContainer = new QWidget()
+    topContainer.setLayout(new FlexLayout())
+    topContainer.setObjectName('topContainer')
+ 
+    const underContainer = new QWidget()
+    underContainer.setLayout(new FlexLayout())
+    underContainer.setObjectName('underContainer')
+
+    const buttonContainer = new QWidget()
+    buttonContainer.setLayout(new FlexLayout())
+    buttonContainer.setObjectName('buttonContainer')
 
     const tabBar = new QTabWidget()
     tabBar.setObjectName('tabBar')
 
-    const cpuName = sysInfo.cpu.manufacturer + sysInfo.cpu.brand
-    const mbName = sysInfo.baseboard.manufacturer + sysInfo.baseboard.model
+    const detailsList = new QListWidget()
+    detailsList.setObjectName('detailsList')
+
+    const postButton = new QPushButton()
+    postButton.setObjectName('postButton')
+    postButton.setText(' 🔎 ')
 
     const cpu = new QListWidget()
     const mb = new QListWidget()
     const ram = new QListWidget()
     const gpu = new QListWidget()
     const disk = new QListWidget()
+    
+    // create tabBar item
+    createTabBarItems()
+    // combine the container
+    combineContainer()
+    // create listener
+    createListener()
 
-    // cpu
-    const cpu_i = new QListWidgetItem()
-    cpu_i.setText(cpuName)
-    cpu.addItem(cpu_i)
+    return allContainer
 
-    // mb
-    const mb_i = new QListWidgetItem()
-    mb_i.setText(mbName)
-    mb.addItem(mb_i)
+    /**
+     * createTabBarItems
+     * 資料寫入tabBar item中
+     */
+    function createTabBarItems() {
+        // cpu
+        const cpu_i = new QListWidgetItem()
+        const cpuName = sysInfo.cpu.manufacturer + sysInfo.cpu.brand
+        cpu_i.setText(cpuName)
+        cpu.addItem(cpu_i)
 
-    // ram
-    let totalRam = 0
-    sysInfo.memLayout.forEach((mem) => {
-        let ram_i = new QListWidgetItem()
-        ram_i.setText(mem.manufacturer + '-' + mem.partNum)
-        ram.addItem(ram_i)
-        totalRam = totalRam + mem.size
-    })
-    // total ram
-    let total = new QListWidgetItem()
-    total.setText('Total :' + bytesToSize(totalRam))
-    ram.addItem(total)
+        // mb
+        const mb_i = new QListWidgetItem()
+        const mbName = sysInfo.baseboard.manufacturer + sysInfo.baseboard.model
+        mb_i.setText(mbName)
+        mb.addItem(mb_i)
 
-    // disk
-    sysInfo.diskLayout.forEach((diskItem) => {
-        let disk_i = new QListWidgetItem()
-        disk_i.setText(diskItem.name)
-        disk.addItem(disk_i)
-    })
+        // ram
+        let totalRam = 0
+        sysInfo.memLayout.forEach((mem) => {
+            let ram_i = new QListWidgetItem()
+            ram_i.setText(mem.manufacturer + '-' + mem.partNum)
+            ram.addItem(ram_i)
+            totalRam = totalRam + mem.size
+        })
+        // total ram
+        let total = new QListWidgetItem()
+        total.setText('Total :' + bytesToSize(totalRam))
+        ram.addItem(total)
 
-    // gpu
-    sysInfo.graphics.controllers.forEach((gpuItem) => {
-        let gpu_i = new QListWidgetItem()
-        gpu_i.setText(gpuItem.model)
-        gpu.addItem(gpu_i)
-    })
+        // disk
+        sysInfo.diskLayout.forEach((diskItem) => {
+            let disk_i = new QListWidgetItem()
+            disk_i.setText(diskItem.name)
+            disk.addItem(disk_i)
+        })
 
-    // Listener
+        // gpu
+        sysInfo.graphics.controllers.forEach((gpuItem) => {
+            let gpu_i = new QListWidgetItem()
+            gpu_i.setText(gpuItem.model)
+            gpu.addItem(gpu_i)
+        })
 
-    // cpu
-    cpu.addEventListener('itemClicked', async (data) => {
-        // showModal(sysInfo.cpu)
-        infoLabel.clear()
-        infoLabel.addItems(await showInfoDetails(sysInfo.cpu))
-    })
+        tabBar.addTab(cpu, new QIcon(), 'CPU')
+        tabBar.addTab(mb, new QIcon(), 'MB')
+        tabBar.addTab(ram, new QIcon(), 'RAM')
+        tabBar.addTab(gpu, new QIcon(), 'GPU')
+        tabBar.addTab(disk, new QIcon(), 'SSD & HDD')
+    }
+    
+    /**
+     * combineContainer
+     * 組合容器
+     */
+    function combineContainer() {
+        // postButton in buttonContainer
+        buttonContainer.layout.addWidget(postButton)
+        // tabBar & buttonContainer in topContainer
+        topContainer.layout.addWidget(tabBar)
+        topContainer.layout.addWidget(buttonContainer)
+        // detailsList in underContainer
+        underContainer.layout.addWidget(detailsList)
+        // topContainer & underContainer in allContainer
+        allContainer.layout.addWidget(topContainer)
+        allContainer.layout.addWidget(underContainer)
+    }
 
-    // mb
-    mb.addEventListener('itemClicked', async (data) => {
-        // showModal(sysInfo.baseboard)
-        infoLabel.clear()
-        infoLabel.addItems(await showInfoDetails(sysInfo.baseboard))
-    })
-
-    // disk
-    disk.addEventListener('itemClicked', async (data) => {
-        infoLabel.clear()
-        let itemIndex = disk.row(new QListWidgetItem(data))
-        infoLabel.addItems(await showInfoDetails(sysInfo.diskLayout[itemIndex]))
-    })
-
-    // ram
-    ram.addEventListener('itemClicked', async (data) => {
-        let itemIndex = ram.row(new QListWidgetItem(data))
-        if (itemIndex !== (ram.count() - 1)) {
-            infoLabel.clear()
-            infoLabel.addItems(await showInfoDetails(sysInfo.memLayout[itemIndex]))
-            // showModal(sysInfo.memLayout[itemIndex])
-        }
-    })
-
-    // gpu
-    gpu.addEventListener('itemClicked', async (data) => {
-        let itemIndex = gpu.row(new QListWidgetItem(data))
-        infoLabel.clear()
-        infoLabel.addItems(await showInfoDetails(sysInfo.graphics.controllers[itemIndex]))
-        // showModal(sysInfo.graphics.controllers[itemIndex])
-    })
-
-    tabBar.addTab(cpu, new QIcon(), 'CPU')
-    tabBar.addTab(mb, new QIcon(), 'MB')
-    tabBar.addTab(ram, new QIcon(), 'RAM')
-    tabBar.addTab(gpu, new QIcon(), 'GPU')
-    tabBar.addTab(disk, new QIcon(), 'SSD & HDD')
-
-    container.layout.addWidget(tabBar)
-    container.layout.addWidget(infoLabel)
-
-    return container
+    /**
+     * createListener
+     * 監聽組件功能事件
+     */
+    function createListener() {
+        // cpu
+        cpu.addEventListener('itemClicked', async (data) => {
+            // showModal(sysInfo.cpu)
+            detailsList.clear()
+            detailsList.addItems(await showInfoDetails(sysInfo.cpu))
+        })
+        // mb
+        mb.addEventListener('itemClicked', async (data) => {
+            // showModal(sysInfo.baseboard)
+            detailsList.clear()
+            detailsList.addItems(await showInfoDetails(sysInfo.baseboard))
+        })
+        // disk
+        disk.addEventListener('itemClicked', async (data) => {
+            detailsList.clear()
+            let itemIndex = disk.row(new QListWidgetItem(data))
+            detailsList.addItems(await showInfoDetails(sysInfo.diskLayout[itemIndex]))
+        })
+        // ram
+        ram.addEventListener('itemClicked', async (data) => {
+            let itemIndex = ram.row(new QListWidgetItem(data))
+            if (itemIndex !== (ram.count() - 1)) {
+                detailsList.clear()
+                detailsList.addItems(await showInfoDetails(sysInfo.memLayout[itemIndex]))
+                // showModal(sysInfo.memLayout[itemIndex])
+            }
+        })
+        // gpu
+        gpu.addEventListener('itemClicked', async (data) => {
+            let itemIndex = gpu.row(new QListWidgetItem(data))
+            detailsList.clear()
+            detailsList.addItems(await showInfoDetails(sysInfo.graphics.controllers[itemIndex]))
+            // showModal(sysInfo.graphics.controllers[itemIndex])
+        })
+        // button
+        postButton.addEventListener('clicked', () => {
+            console.log(win.size().height(), win.size().width())
+        })
+    }
 }
 
 /**
@@ -277,8 +361,8 @@ const createSystemInfoView = async (sysInfo) => {
  * 畫面渲染重讀
  */
 const renderView = async () => {
-    win.setMinimumSize(600, 400)
-    win.setMaximumSize(1200, 800)
+    win.setMinimumSize(700, 560)
+    // win.setMaximumSize(1400, 1120)
     win.show();
     global.win = win;
 }
