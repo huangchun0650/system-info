@@ -58,7 +58,7 @@ const main = async () => {
 
     // gif movie
     const gifMovie = await getMovie(
-        'https://gifimage.net/wp-content/uploads/2018/04/loading-text-gif-14.gif'
+        'https://icon-library.com/images/loading-gif-icon/loading-gif-icon-0.jpg'
     );
 
     gifMovie.setCacheMode(QMovie.CacheAll)
@@ -118,7 +118,7 @@ const main = async () => {
         #detailsList {
             flex: 1;
             background-color: #9d9d9d;
-            color: 'white';
+            color: '#000';
             height: '100%';
             width: '100%';
         }
