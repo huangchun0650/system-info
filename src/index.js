@@ -11,6 +11,7 @@ const {
     QIcon, 
     QMessageBox, 
     QPushButton, 
+    ButtonRole,
     AlignmentFlag,  
 } = require('@nodegui/nodegui');
 const axios = require('axios').default;
@@ -19,6 +20,17 @@ const si = require('systeminformation')
 
 const win = new QMainWindow();
 win.setWindowTitle("系統資訊");
+
+const label_cpu_value = new QLabel()
+label_cpu_value.setObjectName('itemLabel')
+const label_mb_value = new QLabel()
+label_mb_value.setObjectName('itemLabel')
+const label_ram_value = new QLabel()
+label_ram_value.setObjectName('itemLabel')
+const label_gpu_value = new QLabel()
+label_gpu_value.setObjectName('itemLabel')
+const label_disk_value = new QLabel()
+label_disk_value.setObjectName('itemLabel')
 
 const main = async () => {
 
@@ -118,7 +130,7 @@ const main = async () => {
         #detailsList {
             flex: 1;
             background-color: #9d9d9d;
-            color: 'white';
+            color: 'black';
             height: '100%';
             width: '100%';
         }
@@ -142,10 +154,28 @@ const main = async () => {
             flex: 2;
             width: '100%';
         }
-        #buttonContainer {
-            flex: 1;
+        #postContainer {
+            flex: 3;
             justify-content: 'center';
             width: '100%';
+        }
+        #postLabelContainer {
+            flex: 1;
+            background-color: #ffffff;
+        }
+        #infoLabel {
+            flex-grow: 1;
+            flex-wrap: 'wrap';
+            color: #ff0000;
+            font-size: 16px;
+            font-weight: bold;
+        }
+        #itemLabel {
+            flex-grow: 1;
+            flex-wrap: 'wrap';
+            color: #000000;
+            font-size: 10px;
+            font-weight: bold;
         }
     `);
     
@@ -213,9 +243,9 @@ const createSystemInfoView = async (sysInfo) => {
     underContainer.setLayout(new FlexLayout())
     underContainer.setObjectName('underContainer')
 
-    const buttonContainer = new QWidget()
-    buttonContainer.setLayout(new FlexLayout())
-    buttonContainer.setObjectName('buttonContainer')
+    const postContainer = new QWidget()
+    postContainer.setLayout(new FlexLayout())
+    postContainer.setObjectName('postContainer')
 
     const tabBar = new QTabWidget()
     tabBar.setObjectName('tabBar')
@@ -225,7 +255,27 @@ const createSystemInfoView = async (sysInfo) => {
 
     const postButton = new QPushButton()
     postButton.setObjectName('postButton')
-    postButton.setText(' 🔎 ')
+    postButton.setText(' 🔺 ')
+
+    const postLabelContainer = new QWidget()
+    postLabelContainer.setLayout(new FlexLayout())
+    postLabelContainer.setObjectName('postLabelContainer')
+
+    const label_cpu = new QLabel()
+    label_cpu.setObjectName('infoLabel')
+    label_cpu.setText('CPU :')
+    const label_mb = new QLabel()
+    label_mb.setObjectName('infoLabel')
+    label_mb.setText('MB :')
+    const label_ram = new QLabel()
+    label_ram.setObjectName('infoLabel')
+    label_ram.setText('Ram :')
+    const label_gpu = new QLabel()
+    label_gpu.setObjectName('infoLabel')
+    label_gpu.setText('GPU :')
+    const label_disk = new QLabel()
+    label_disk.setObjectName('infoLabel')
+    label_disk.setText('Disk :')
 
     const cpu = new QListWidget()
     const mb = new QListWidget()
@@ -247,16 +297,20 @@ const createSystemInfoView = async (sysInfo) => {
      * 資料寫入tabBar item中
      */
     function createTabBarItems() {
+        let arr = []
+        let postArray = []
         // cpu
         const cpu_i = new QListWidgetItem()
         const cpuName = sysInfo.cpu.manufacturer + sysInfo.cpu.brand
         cpu_i.setText(cpuName)
+        label_cpu_value.setText(cpuName)
         cpu.addItem(cpu_i)
 
         // mb
         const mb_i = new QListWidgetItem()
         const mbName = sysInfo.baseboard.manufacturer + sysInfo.baseboard.model
         mb_i.setText(mbName)
+        label_mb_value.setText(mbName)
         mb.addItem(mb_i)
 
         // ram
@@ -265,26 +319,68 @@ const createSystemInfoView = async (sysInfo) => {
             let ram_i = new QListWidgetItem()
             ram_i.setText(mem.manufacturer + '-' + mem.partNum)
             ram.addItem(ram_i)
+            arr.push(mem.manufacturer + '-' + mem.partNum)
             totalRam = totalRam + mem.size
         })
+        arr.push('DDR4 Unbuffered-SODIMM Memory')
+        postArray = [...new Set(arr)]
+        let ramName = ''
+        postArray.forEach((item, index) => {
+            let count = arr.filter(element => element == item).length
+            if (index == 0) {
+                ramName = item + ' x' + count
+            } else {
+                ramName = ramName + ',\n' + item + ' x' + count
+            }
+        })
+        label_ram_value.setText(ramName)
+        
         // total ram
         let total = new QListWidgetItem()
         total.setText('Total :' + bytesToSize(totalRam))
         ram.addItem(total)
 
         // disk
+        arr = []
+        postArray = []
         sysInfo.diskLayout.forEach((diskItem) => {
             let disk_i = new QListWidgetItem()
             disk_i.setText(diskItem.name)
             disk.addItem(disk_i)
+            arr.push(diskItem.name)
         })
+        postArray = [...new Set(arr)]
+        let diskName = ''
+        postArray.forEach((item, index) => {
+            let count = arr.filter(element => element == item).length
+            if (index == 0) {
+                diskName = item + ' x' + count
+            } else {
+                diskName = diskName + ',\n' + item + ' x' + count
+            }
+        })
+        label_disk_value.setText(diskName)
 
         // gpu
+        arr = []
+        postArray = []
         sysInfo.graphics.controllers.forEach((gpuItem) => {
             let gpu_i = new QListWidgetItem()
             gpu_i.setText(gpuItem.model)
             gpu.addItem(gpu_i)
+            arr.push(gpuItem.model)
         })
+        postArray = [...new Set(arr)]
+        let gpuName = ''
+        postArray.forEach((item, index) => {
+            let count = arr.filter(element => element == item).length
+            if (index == 0) {
+                gpuName = item + ' x' + count
+            } else {
+                gpuName = gpuName + ',\n' + item + ' x' + count
+            }
+        })
+        label_gpu_value.setText(gpuName)
 
         tabBar.addTab(cpu, new QIcon(), 'CPU')
         tabBar.addTab(mb, new QIcon(), 'MB')
@@ -298,11 +394,22 @@ const createSystemInfoView = async (sysInfo) => {
      * 組合容器
      */
     function combineContainer() {
-        // postButton in buttonContainer
-        buttonContainer.layout.addWidget(postButton)
-        // tabBar & buttonContainer in topContainer
+        postLabelContainer.layout.addWidget(label_cpu)
+        postLabelContainer.layout.addWidget(label_cpu_value)
+        postLabelContainer.layout.addWidget(label_mb)
+        postLabelContainer.layout.addWidget(label_mb_value)
+        postLabelContainer.layout.addWidget(label_ram)
+        postLabelContainer.layout.addWidget(label_ram_value)
+        postLabelContainer.layout.addWidget(label_gpu)
+        postLabelContainer.layout.addWidget(label_gpu_value)
+        postLabelContainer.layout.addWidget(label_disk)
+        postLabelContainer.layout.addWidget(label_disk_value)
+        // postButton & postLabel in postContainer
+        postContainer.layout.addWidget(postLabelContainer)
+        postContainer.layout.addWidget(postButton)
+        // tabBar & postContainer in topContainer
         topContainer.layout.addWidget(tabBar)
-        topContainer.layout.addWidget(buttonContainer)
+        topContainer.layout.addWidget(postContainer)
         // detailsList in underContainer
         underContainer.layout.addWidget(detailsList)
         // topContainer & underContainer in allContainer
@@ -351,6 +458,7 @@ const createSystemInfoView = async (sysInfo) => {
         })
         // button
         postButton.addEventListener('clicked', () => {
+            showModal()
             console.log(win.size().height(), win.size().width())
         })
     }
@@ -370,18 +478,22 @@ const renderView = async () => {
 /**
  * showModal
  * message box 通知模式
- * @param {Object} details 
  */
-const showModal = async (details) => {
-    let str = ''
-    for (const [key, value] of Object.entries(details)) {
-        str = str + `${key}: ${value} \n`
-    }
+const showModal = async () => {
+    let str = 'CPU: ' + label_cpu_value.text() + ',\n' +
+        'MB: ' + label_mb_value.text() + ',\n' +
+        'Ram: ' + label_ram_value.text() + ',\n' +
+        'GPU: ' + label_gpu_value.text() + ',\n' +
+        'Disk: ' + label_disk_value.text()
     const modal = new QMessageBox();
-    modal.setText(str);
+    modal.setText('Check ?');
+    modal.setDetailedText(str);
     const okButton = new QPushButton();
+    const cancelButton = new QPushButton();
     okButton.setText('OK');
+    cancelButton.setText('Cancel');
     modal.addButton(okButton);
+    modal.addButton(cancelButton, ButtonRole.AcceptRole);
     modal.exec();
 }
 
