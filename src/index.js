@@ -70,12 +70,12 @@ const main = async () => {
 
     // gif movie
     const gifMovie = await getMovie(
-        'https://gifimage.net/wp-content/uploads/2018/04/loading-text-gif-14.gif'
+        'https://media0.giphy.com/media/xTkcEQACH24SMPxIQg/100w.gif?cid=a56ef05bn92hurnl09d70hkpqfkin8d0q0vg6v2igh4ns0ou&rid=100w.gif&ct=g'
     );
 
     gifMovie.setCacheMode(QMovie.CacheAll)
-    gifMovie.setSpeed(200)
-    gifMovie.setScaledSize(new QSize(640 , 400))
+    gifMovie.setSpeed(100)
+    // gifMovie.setScaledSize(new QSize(640 , 400))
     loadingGif.setMovie(gifMovie);
     gifMovie.start()
 
@@ -94,7 +94,7 @@ const main = async () => {
         #labelContainer {
             display: flex;
             flex: 1;
-            background-color: #000000;
+            background-color: #161519;
         }
         #mainLabel {
             flex-grow: 1;
@@ -106,7 +106,7 @@ const main = async () => {
             flex: 9;
             align-items: 'center';
             justify-content: 'center';
-            background-color: #ffffff;
+            background-color: #161519;
         }
         #loadingContainer {
             height: 100;
@@ -115,7 +115,7 @@ const main = async () => {
             flex-wrap: 'wrap';
             justify-content: 'center';
             align-items: 'center';
-            background-color: #ffffff;
+            background-color: #161519;
         }
         #loadingGif {
             width: '100%';
@@ -149,6 +149,7 @@ const main = async () => {
             flex-direction: 'row';
             flex: 3;
             width: '100%';
+            background-color: #ffffff;
         }
         #underContainer {
             flex: 2;
@@ -158,6 +159,7 @@ const main = async () => {
             flex: 3;
             justify-content: 'center';
             width: '100%';
+            background-color: #ffffff;
         }
         #postLabelContainer {
             flex: 1;
