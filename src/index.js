@@ -322,7 +322,6 @@ const createSystemInfoView = async (sysInfo) => {
             arr.push(mem.manufacturer + '-' + mem.partNum)
             totalRam = totalRam + mem.size
         })
-        arr.push('DDR4 Unbuffered-SODIMM Memory')
         postArray = [...new Set(arr)]
         let ramName = ''
         postArray.forEach((item, index) => {
